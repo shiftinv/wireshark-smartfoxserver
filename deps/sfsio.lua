@@ -113,13 +113,14 @@ local getTypeArraySize = function( tvbuffer, offset )
   end
 end
 
-local decodeArray = function( tvbuffer, offset, decoder )
+local decodeArray = function( tvbuffer, offset, valueDecoder, sizeDecoder )
+  sizeDecoder = sizeDecoder or getTypeArraySize
   local count
-  count, offset = getTypeArraySize(tvbuffer, offset)
+  count, offset = sizeDecoder(tvbuffer, offset)
   local arr = {}
   for i=1,count do
     local val
-    val, offset = decoder(tvbuffer, offset)
+    val, offset = valueDecoder(tvbuffer, offset)
     arr[i] = val
   end
   return arr, offset
@@ -132,10 +133,7 @@ end
 
 -- return tvbuffer_range
 local binDecode_BYTE_ARRAY = function( tvbuffer, offset )
-  local count
-  count, offset = getTypeArraySize(tvbuffer, offset)
-  local val = tvbuffer(offset, count)
-  return val, offset + count
+  return decodeArray(tvbuffer, offset, binDecode_BYTE, binDecode_INT)
 end
 
 local binDecode_SHORT_ARRAY = function( tvbuffer, offset )
